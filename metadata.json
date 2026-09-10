@@ -1,0 +1,8 @@
+{
+  "name": "AFIN.AI — AI Financial Assistant UMKM",
+  "description": "AI Financial Assistant untuk membantu pelaku UMKM Indonesia mencatat, memantau, dan memahami kondisi keuangan usaha.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

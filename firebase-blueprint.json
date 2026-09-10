@@ -1,0 +1,33 @@
+{
+  "entities": {
+    "users": {
+      "title": "UserProfile",
+      "description": "Profil pengguna UMKM terdaftar",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "businessName": { "type": "string" },
+        "businessType": { "type": "string" }
+      },
+      "required": ["id", "email", "name", "businessName"]
+    },
+    "transactions": {
+      "title": "Transaction",
+      "description": "Catatan transaksi pemasukan atau pengeluaran keuangan UMKM",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "type": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "date", "type", "category", "amount"]
+    }
+  }
+}

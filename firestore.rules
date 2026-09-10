@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // HELPER FUNCTIONS UNTUK KEAMANAN & OTORISASI
+    // ==========================================
+
+    // 1. Memastikan pengguna sudah terautentikasi (login)
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    // 2. Memastikan pengguna adalah pemilik dokumen berdasarkan userId
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 3. Validasi tipe data & batasan input field transaksi
+    function isValidTransactionData(data) {
+      return data.amount is number 
+        && data.amount > 0
+        && data.type in ['income', 'expense']
+        && data.category is string 
+        && data.category.size() > 0 
+        && data.category.size() <= 100
+        && data.date is string 
+        && data.date.size() >= 10
+        && (!('description' in data) || (data.description is string && data.description.size() <= 500));
+    }
+
+    // ==========================================
+    // KOLEKSI: users/{userId}
+    // Profil pengguna UMKM
+    // ==========================================
+    match /users/{userId} {
+      // User hanya dapat membaca & memperbarui profilnya sendiri
+      allow read, update: if isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      // Mencegah penghapusan akun langsung tanpa prosedur audit admin
+      allow delete: if false;
+    }
+
+    // ==========================================
+    // KOLEKSI: transactions/{transactionId}
+    // Data transaksi pemasukan & pengeluaran UMKM
+    // ==========================================
+    match /transactions/{transactionId} {
+
+      // READ: Hanya boleh membaca jika transaksi tersebut milik user yang sedang login
+      // User lain atau unauthenticated user DITOLAK (DENY)
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // CREATE: Wajib login, userId pada dokumen HARUS sama dengan UID auth (mencegah impersonasi),
+      // serta data transaksi wajib memenuhi validasi tipe dan batasan nilai
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid
+        && isValidTransactionData(request.resource.data);
+
+      // UPDATE: Hanya boleh mengubah transaksi miliknya sendiri,
+      // DILARANG MENGUBAH kepemilikan userId (request.resource.data.userId == resource.data.userId),
+      // dan data yang diperbarui harus tetap valid
+      allow update: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && isValidTransactionData(request.resource.data);
+
+      // DELETE: Hanya pemilik transaksi yang sah yang boleh menghapus dokumen
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // ==========================================
+    // DEFAULT STRICT POLICY: DENY ALL
+    // Menolak seluruh akses ke koleksi/dokumen lain di luar aturan eksplisit di atas
+    // ==========================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
