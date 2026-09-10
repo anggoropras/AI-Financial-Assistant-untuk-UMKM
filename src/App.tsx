@@ -11,7 +11,7 @@ import { SettingsView } from './components/settings/SettingsView';
 import { AuthModal } from './components/auth/AuthModal';
 import { LandingPageView } from './components/landing/LandingPageView';
 import { Toast, ToastMessage } from './components/common/Toast';
-import { ShieldCheck, Lock } from 'lucide-react';
+import { ShieldCheck, Lock, Sparkles } from 'lucide-react';
 
 import { Transaction, UserProfile, TransactionType } from './types';
 import { authService } from './services/firebase/authService';
@@ -202,14 +202,26 @@ export const App: React.FC = () => {
                   Sesuai standar perlindungan data finansial Afin.ai, catatan transaksi dan analisa arus kas usaha hanya dapat diakses setelah Anda masuk ke akun usaha yang sah.
                 </p>
               </div>
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const user = await authService.login('budi.santoso@warungberkah.id', 'demo123');
+                    setCurrentUser(user);
+                    showToast('Selamat datang kembali, Pak Budi Santoso!', 'success');
+                  }}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Jelajahi dengan Akun Demo (1-Klik)</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setIsAuthModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-all cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-all cursor-pointer"
                 >
-                  <Lock className="w-4 h-4" />
-                  <span>Masuk ke Akun Usaha Anda</span>
+                  <Lock className="w-4 h-4 text-slate-500" />
+                  <span>Masuk Akun Lain</span>
                 </button>
               </div>
             </div>

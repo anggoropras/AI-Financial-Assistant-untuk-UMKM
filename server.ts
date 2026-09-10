@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import path from "path";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
-import { createServer as createViteServer } from "vite";
+
 
 dotenv.config();
 
@@ -306,10 +306,10 @@ async function startServer() {
     res.json({ status: "ok", service: "afin-ai", timestamp: new Date().toISOString() });
   });
 
-  // API Gemini Financial Assistant
-  app.post("/api/gemini/assistant", async (req: Request, res: Response): Promise<void> => {
-    const payload = req.body as FinancialContextPayload;
-    const rawPrompt = payload?.prompt;
+  // API Gemini Financial Assistant (supports alias endpoints and payload variants)
+  const handleAiAssistantRequest = async (req: Request, res: Response): Promise<void> => {
+    const payload = req.body as FinancialContextPayload & { message?: string };
+    const rawPrompt = payload?.prompt || payload?.message;
 
     // 1. Input Validation: Prompt wajib ada dan bertipe string
     if (!rawPrompt || typeof rawPrompt !== "string") {
@@ -386,10 +386,15 @@ async function startServer() {
       source: "rules_fallback",
       model: "afin-deterministic-v1",
     });
-  });
+  };
+
+  app.post("/api/gemini/assistant", handleAiAssistantRequest);
+  app.post("/api/ai/ask", handleAiAssistantRequest);
+  app.post("/api/chat", handleAiAssistantRequest);
 
   // Vite Middleware for development vs static serve for production
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
